@@ -1,0 +1,10 @@
+{
+	"apps": [
+		{
+			"name": "operaciones",
+			"cwd": "./src/",
+			"script": "npm",
+			"args": "run start"
+		}
+	]
+}

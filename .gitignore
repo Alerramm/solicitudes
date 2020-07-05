@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+**/node_modules
+.idea
+.vscode
+package-lock.json
+.gitconfig
+
+# production
+build/
+dist/
+
+# misc
+.DS_Store
+src/.DS_Store
+src/*.*/.DS_Store
+src/*.*/*.*/.DS_Store
+src/*.*/*.*/*.*/.DS_Store
+.env
+
+*.log
+*.zip
+files
