@@ -28,124 +28,22 @@ class Solicitudes extends Component {
 			visible: true,
 		});
 	};
-	expandedRowRenderEmbarques = (record) => {
-		const columnas_embarques = [
-			{ title: 'Numero', dataIndex: 'numero', key: 'numero' },
-			{ title: 'Cajas', dataIndex: 'cajas', key: 'cajas' },
-			{ title: 'Cajas Entregadas', dataIndex: 'cajas_entregadas', key: 'cajas_entregadas' },
-			{ title: 'Cajas Rechazadas', dataIndex: 'cajas_rechazadas', key: 'cajas_rechazadas' },
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusEmbarque',
-				key: 'estatusEmbarque',
-				render: (record) => {
-					switch (record) {
-						case 'Pendiente':
-							return <Tag color="yellow">Pendiente</Tag>;
-						case 'Bloqueado':
-							return <Tag color="orange">Bloqueado</Tag>;
-						case 'Rechazo':
-							return <Tag color="red">Rechazo</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
-		];
-
-		return (
-			<Table
-				size="small"
-				columns={columnas_embarques}
-				rowKey={(record) => record.id}
-				dataSource={record.embarques}
-				pagination={false}
-			/>
-		);
-	};
 
 	expandedRowRender = (record) => {
 		const columnas_tramos = [
 			{ title: 'Id', dataIndex: 'idTramo', key: 'idTramo' },
-			{ title: 'Tramo', dataIndex: 'tramo', key: 'tramo' },
-			{ title: 'Destino', dataIndex: 'destino', key: 'destino' },
-			{ title: 'Origen', dataIndex: 'origen', key: 'origen' },
-			{ title: 'Distancia', dataIndex: 'distanciaTramo', key: 'distanciaTramo' },
-			{ title: 'Entrega', dataIndex: 'entrega', key: 'entrega' },
-			{
-				title: 'Fecha',
-				dataIndex: 'fecha',
-				key: 'fecha',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{ title: 'Observaciones', dataIndex: 'observaciones', key: 'observaciones' },
-			{
-				title: 'Tiempo',
-				dataIndex: 'tiempo',
-				key: 'tiempo',
-				render: (record) => {
-					let days = Math.floor(record / (3600 * 24));
-					record -= days * 3600 * 24;
-					let hrs = Math.floor(record / 3600);
-					record -= hrs * 3600;
-					let mnts = Math.floor(record / 60);
-					record -= mnts * 60;
-					return days + 'dias ' + hrs + 'hrs ' + mnts + 'm ' + record + 's';
-				},
-			},
-			{
-				title: 'Tiempo de Carga',
-				dataIndex: 'tiempo_carga',
-				key: 'tiempo_carga',
-				render: (record) => {
-					return record + ' h';
-				},
-			},
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusTramo',
-				key: 'estatusTramo',
-				render: (record) => {
-					switch (record) {
-						case 'Pendiente':
-							return <Tag color="yellow">Pendiente</Tag>;
-						case 'Bloqueado':
-							return <Tag color="red">Bloqueado</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
-			{
-				title: 'Link',
-				dataIndex: 'link',
-				key: 'link',
-				render: (record) => {
-					return <img src={maps} />;
-				},
-			},
-			{
-				title: 'Casetas',
-				dataIndex: 'casetas',
-				key: 'casetas',
-				render: (record) => {
-					const iconoAccess = () => <img src={access} />;
-					return <Icon component={iconoAccess} />;
-				},
-			},
+			{ title: 'Seguro',},
+			{ title: 'Maniobra',},
+			{ title: 'Seguridad',},
+			{ title: 'Custodia',},
+			{ title: 'Beluga méxico',},
+			{ title: 'Externos',},
 		];
 		return (
 			<Table
 				size="small"
 				columns={columnas_tramos}
 				rowKey={(record) => record.idTramo}
-				expandedRowRender={this.expandedRowRenderEmbarques}
 				dataSource={record.tramos}
 				pagination={false}
 			/>
