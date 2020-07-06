@@ -160,110 +160,42 @@ class Solicitudes extends Component {
 
 	componentDidMount = () => {
 		const columnas_operaciones = [
-			{ title: 'Viaje', dataIndex: 'idViaje', key: 'idViaje' },
-			{ title: 'Empresa', dataIndex: 'empresa', key: 'empresa' },
+			{ title: 'Cliente', dataIndex: 'cliente', key: 'cliente' },
+			{ title: 'Dirección de Carga' },
 			{
-				title: 'Fecha de Carga',
+				title: 'Fecha y Hora de Carga',
 				dataIndex: 'fecha_carga',
 				key: 'fecha_carga',
 				render: (record) => {
 					return this.diaSemana(record) + ' ' + record;
 				},
 			},
-			{ title: 'Cliente', dataIndex: 'cliente', key: 'cliente' },
-			{ title: 'Unidad', dataIndex: 'unidad', key: 'unidad' },
-			{ title: 'Operador', dataIndex: 'operador', key: 'operador' },
+			{ title: 'Tipo de Adecuación' },
+			{ title: 'Tipo de Unidad', dataIndex: 'unidad', key: 'unidad' },
+			{ title: 'Dirección de Entrega' },
 			{ title: 'Destino', dataIndex: 'destinoViaje', key: 'destinoViaje' },
-			{ title: 'Entrega', dataIndex: 'ruta', key: 'ruta' },
 			{
-				title: 'Fecha Entrega',
+				title: 'Fecha y Hora Entrega',
 				dataIndex: 'fecha_entrega',
 				key: 'fecha_entrega',
 				render: (record) => {
 					return this.diaSemana(record) + ' ' + record;
 				},
 			},
+			{ title: 'Servicio' },
+			{ title: 'Precio $' },
 			{
-				title: 'Fecha Disponibilidad',
-				dataIndex: 'fecha_disponibilidad',
-				key: 'fecha_disponibilidad',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{ title: 'Tiempo', dataIndex: 'tiempo_formato', key: 'tiempo_formato' },
-			{
-				title: 'Distancia',
-				dataIndex: 'distanciaViaje',
-				key: 'distanciaViaje',
-			},
-			{ title: 'Grupo', dataIndex: 'grupo', key: 'grupo' },
-			{
-				title: 'Total viaje',
-				dataIndex: 'precio',
-				key: 'precio',
-				render: (x, record) => {
-					console.log(record);
+				title: 'Confirmación de solicitud',
+				dataIndex: 'confirmacionSolicitud',
+				key: 'confirmacionSolicitud',
+				render: () => {
 					return (
-						<Button type="primary" onClick={() => this.onOpenPrecios(record)}>
-							{record.precio}
+						<Button type="primary">
+							Confirmación de Solicitud
 						</Button>
 					);
 				},
 			},
-			{
-				title: 'Total costos',
-				dataIndex: 'costosTotales',
-				key: 'costosTotales',
-				render: (x, record) => {
-					console.log(record);
-					return (
-						<Button type="primary" onClick={() => this.onOpen(record)}>
-							{record.gasto}
-						</Button>
-					);
-				},
-			},
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusViaje',
-				key: 'estatusViaje',
-				render: (record) => {
-					switch (record) {
-						case 'Gastos':
-							return <Tag color="orange">Gastos</Tag>;
-						case 'En proceso cliente':
-							return <Tag color="brown">En proceso cliente</Tag>;
-						case 'En proceso':
-							return <Tag color="pink">En carga</Tag>;
-						case 'En trayecto':
-							return <Tag color="blue">En trayecto</Tag>;
-						case 'En regreso':
-							return <Tag color="yellow">En regreso</Tag>;
-						case 'En facturacion':
-							return <Tag color="yellow">Faltante evidencia</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						case 'Cancelado':
-							return <Tag color="red">Cancelado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
-			/* {
-				title: 'Estatus App Operador',
-				dataIndex: 'estatusAppOperador',
-				key: 'estatusAppOperador',
-				render: (record) => {
-					if (record == 'Pendiente') {
-						return <Tag color="volcano">Pendiente</Tag>;
-					}
-					if (record == 'Finalizado') {
-						return <Tag color="green">Finalizado</Tag>;
-					}
-				},
-			}, */
 		];
 		this.setState({
 			loading: true,

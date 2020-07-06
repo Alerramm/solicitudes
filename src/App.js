@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import { Layout } from 'antd';
 import PageHeaders from './components/PageHeader/PageHeader';
-import Operaciones from './containers/Operaciones/Operaciones';
+import Solicitudes from './containers/Solicitudes/Solicitudes';
 import Analitycs from './containers/Analitycs/Analitycs';
 
 import './App.css';
 import 'antd/dist/antd.css';
-const {  Content } = Layout;
+const { Content } = Layout;
 class App extends Component {
 	state = {
 		collapsed: true,
@@ -18,7 +18,7 @@ class App extends Component {
 			collapsed: !this.state.collapsed,
 		});
 	};
-	option = e => {
+	option = (e) => {
 		this.setState({
 			opcion: e.item.props.name,
 		});
@@ -27,14 +27,13 @@ class App extends Component {
 	render() {
 		const { opcion } = this.state;
 		return (
-			
 			<Layout>
-			<PageHeaders />
-			<Content>
-				{opcion === 'tabla' && <Operaciones />}
-				{opcion === 'analitycs' && <Analitycs />}
-			</Content>
-		</Layout>
+				<PageHeaders />
+				<Content>
+					{opcion === 'tabla' && <Solicitudes />}
+					{opcion === 'analitycs' && <Analitycs />}
+				</Content>
+			</Layout>
 		);
 	}
 }
