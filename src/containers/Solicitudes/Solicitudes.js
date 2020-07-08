@@ -1,369 +1,552 @@
 import React, { Component, Fragment } from 'react';
-import { Layout, Table, Modal, Menu, Drawer, Tag, Button, Icon } from 'antd';
-import { MailOutlined, SettingOutlined } from '@ant-design/icons';
+import {
+	Layout,
+	Table,
+	InputNumber,
+	Badge,
+	Dropdown,
+	Button,
+	message,
+	Modal,
+	Tag,
+	Typography,
+} from 'antd';
 import { consultaViajes } from './SolicitudesActions';
-import maps from './../../../src/img/google-maps.svg';
-import access from './../../../src/img/access.svg';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
 const { Content } = Layout;
-const { SubMenu } = Menu;
+const { confirm } = Modal;
+const { Title } = Typography;
 
 class Solicitudes extends Component {
 	state = {
-		data: [],
-		columns: [],
+		data1: [],
+		data2: [],
+		columns1: [],
+		columns2: [],
 		loading: false,
-		current: '',
-		disabledMenu: false,
-		visible: false,
-		placement: 'bottom',
+		id: 0,
+		parcial: false,
+		monto: 0,
+		tipo: '',
+		btnAplicar: true,
+		idKey: '',
+		tipoViaje: [],
+		selectedRowKeys: [],
+		empresa: '',
+		total1: 0,
+		total2: 0,
+		sin_atender1: 0,
+		sin_atender2: 0,
+		sin_operador1: 0,
+		sin_operador2: 0,
+		sin_estatus1: 0,
+		sin_estatus2: 0,
 	};
-	onClose = () => {
+
+	//ok
+	handleChange = (id, value, columna) => {
+		const { data } = this.state;
+		data.map((viaje) => {
+			if (id === viaje.key) {
+				viaje[columna] = value;
+			}
+			return viaje;
+		});
 		this.setState({
-			visible: false,
+			data,
 		});
 	};
-	onOpen = (e) => {
-		console.log(e);
-		this.setState({
-			visible: true,
-		});
+
+	//ok
+	estatus = (label) => {
+		let badge = '';
+		switch (label) {
+			case 'Pendiente':
+				badge = 'orange';
+				break;
+			case 'Aprobado':
+				badge = 'green';
+				break;
+			case 'Confirmado':
+				badge = 'green';
+				break;
+			case 'Rechazado':
+				badge = 'red';
+				break;
+			default:
+				badge = 'blue';
+				break;
+		}
+		return <Tag color={badge}>{label}</Tag>;
 	};
-	expandedRowRenderEmbarques = (record) => {
-		const columnas_embarques = [
-			{ title: 'Numero', dataIndex: 'numero', key: 'numero' },
-			{ title: 'Cajas', dataIndex: 'cajas', key: 'cajas' },
-			{ title: 'Cajas Entregadas', dataIndex: 'cajas_entregadas', key: 'cajas_entregadas' },
-			{ title: 'Cajas Rechazadas', dataIndex: 'cajas_rechazadas', key: 'cajas_rechazadas' },
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusEmbarque',
-				key: 'estatusEmbarque',
-				render: (record) => {
-					switch (record) {
-						case 'Pendiente':
-							return <Tag color="yellow">Pendiente</Tag>;
-						case 'Bloqueado':
-							return <Tag color="orange">Bloqueado</Tag>;
-						case 'Rechazo':
-							return <Tag color="red">Rechazo</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
+
+	//ok
+	expandedRowRender1 = (record) => {
+		const columns = [
+			{ title: 'Seguro', dataIndex: 'seguro', key: 'seguro' },
+			{ title: 'Maniobras', dataIndex: 'maniobra', key: 'maniobra' },
+			{ title: 'Seguridad', dataIndex: 'seguridad', key: 'seguridad' },
+			{ title: 'Custodia', dataIndex: 'custodia', key: 'custodia' },
 		];
-
-		return (
-			<Table
-				size="small"
-				columns={columnas_embarques}
-				rowKey={(record) => record.id}
-				dataSource={record.embarques}
-				pagination={false}
-			/>
-		);
+		return <Table columns={columns} dataSource={record.adicionales} pagination={false} />;
 	};
 
-	expandedRowRender = (record) => {
-		const columnas_tramos = [
-			{ title: 'Id', dataIndex: 'idTramo', key: 'idTramo' },
-			{ title: 'Tramo', dataIndex: 'tramo', key: 'tramo' },
-			{ title: 'Destino', dataIndex: 'destino', key: 'destino' },
-			{ title: 'Origen', dataIndex: 'origen', key: 'origen' },
-			{ title: 'Distancia', dataIndex: 'distanciaTramo', key: 'distanciaTramo' },
-			{ title: 'Entrega', dataIndex: 'entrega', key: 'entrega' },
-			{
-				title: 'Fecha',
-				dataIndex: 'fecha',
-				key: 'fecha',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{ title: 'Observaciones', dataIndex: 'observaciones', key: 'observaciones' },
-			{
-				title: 'Tiempo',
-				dataIndex: 'tiempo',
-				key: 'tiempo',
-				render: (record) => {
-					let days = Math.floor(record / (3600 * 24));
-					record -= days * 3600 * 24;
-					let hrs = Math.floor(record / 3600);
-					record -= hrs * 3600;
-					let mnts = Math.floor(record / 60);
-					record -= mnts * 60;
-					return days + 'dias ' + hrs + 'hrs ' + mnts + 'm ' + record + 's';
-				},
-			},
-			{
-				title: 'Tiempo de Carga',
-				dataIndex: 'tiempo_carga',
-				key: 'tiempo_carga',
-				render: (record) => {
-					return record + ' h';
-				},
-			},
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusTramo',
-				key: 'estatusTramo',
-				render: (record) => {
-					switch (record) {
-						case 'Pendiente':
-							return <Tag color="yellow">Pendiente</Tag>;
-						case 'Bloqueado':
-							return <Tag color="red">Bloqueado</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
-			{
-				title: 'Link',
-				dataIndex: 'link',
-				key: 'link',
-				render: (record) => {
-					return <img src={maps} />;
-				},
-			},
-			{
-				title: 'Casetas',
-				dataIndex: 'casetas',
-				key: 'casetas',
-				render: (record) => {
-					const iconoAccess = () => <img src={access} />;
-					return <Icon component={iconoAccess} />;
-				},
-			},
+	expandedRowRender2 = (record) => {
+		const columns = [
+			{ title: 'Seguro', dataIndex: 'seguro', key: 'seguro' },
+			{ title: 'Maniobras', dataIndex: 'maniobra', key: 'maniobra' },
+			{ title: 'Seguridad', dataIndex: 'seguridad', key: 'seguridad' },
+			{ title: 'Custodia', dataIndex: 'custodia', key: 'custodia' },
 		];
-		return (
-			<Table
-				size="small"
-				columns={columnas_tramos}
-				rowKey={(record) => record.idTramo}
-				expandedRowRender={this.expandedRowRenderEmbarques}
-				dataSource={record.tramos}
-				pagination={false}
-			/>
-		);
+		return <Table columns={columns} dataSource={record.adicionales} pagination={false} />;
 	};
 
-	diaSemana = (record) => {
-		const fecha = new Date(record);
-		const dias = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
-		return dias[fecha.getUTCDay()];
-	};
-
+	//ok
 	componentDidMount = () => {
-		const columnas_operaciones = [
-			{ title: 'Viaje', dataIndex: 'idViaje', key: 'idViaje' },
-			{ title: 'Empresa', dataIndex: 'empresa', key: 'empresa' },
-			{
-				title: 'Fecha de Carga',
-				dataIndex: 'fecha_carga',
-				key: 'fecha_carga',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{ title: 'Cliente', dataIndex: 'cliente', key: 'cliente' },
-			{ title: 'Unidad', dataIndex: 'unidad', key: 'unidad' },
-			{ title: 'Operador', dataIndex: 'operador', key: 'operador' },
-			{ title: 'Destino', dataIndex: 'destinoViaje', key: 'destinoViaje' },
-			{ title: 'Entrega', dataIndex: 'ruta', key: 'ruta' },
-			{
-				title: 'Fecha Entrega',
-				dataIndex: 'fecha_entrega',
-				key: 'fecha_entrega',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{
-				title: 'Fecha Disponibilidad',
-				dataIndex: 'fecha_disponibilidad',
-				key: 'fecha_disponibilidad',
-				render: (record) => {
-					return this.diaSemana(record) + ' ' + record;
-				},
-			},
-			{ title: 'Tiempo', dataIndex: 'tiempo_formato', key: 'tiempo_formato' },
-			{
-				title: 'Distancia',
-				dataIndex: 'distanciaViaje',
-				key: 'distanciaViaje',
-			},
-			{ title: 'Grupo', dataIndex: 'grupo', key: 'grupo' },
-			{
-				title: 'Total viaje',
-				dataIndex: 'precio',
-				key: 'precio',
-				render: (x, record) => {
-					console.log(record);
-					return (
-						<Button type="primary" onClick={() => this.onOpenPrecios(record)}>
-							{record.precio}
-						</Button>
-					);
-				},
-			},
-			{
-				title: 'Total costos',
-				dataIndex: 'costosTotales',
-				key: 'costosTotales',
-				render: (x, record) => {
-					console.log(record);
-					return (
-						<Button type="primary" onClick={() => this.onOpen(record)}>
-							{record.gasto}
-						</Button>
-					);
-				},
-			},
-			{
-				title: 'Estatus',
-				dataIndex: 'estatusViaje',
-				key: 'estatusViaje',
-				render: (record) => {
-					switch (record) {
-						case 'Gastos':
-							return <Tag color="orange">Gastos</Tag>;
-						case 'En proceso cliente':
-							return <Tag color="brown">En proceso cliente</Tag>;
-						case 'En proceso':
-							return <Tag color="pink">En carga</Tag>;
-						case 'En trayecto':
-							return <Tag color="blue">En trayecto</Tag>;
-						case 'En regreso':
-							return <Tag color="yellow">En regreso</Tag>;
-						case 'En facturacion':
-							return <Tag color="yellow">Faltante evidencia</Tag>;
-						case 'Finalizado':
-							return <Tag color="green">Finalizado</Tag>;
-						case 'Cancelado':
-							return <Tag color="red">Cancelado</Tag>;
-						default:
-							return <Tag>{record}</Tag>;
-					}
-				},
-			},
-			/* {
-				title: 'Estatus App Operador',
-				dataIndex: 'estatusAppOperador',
-				key: 'estatusAppOperador',
-				render: (record) => {
-					if (record == 'Pendiente') {
-						return <Tag color="volcano">Pendiente</Tag>;
-					}
-					if (record == 'Finalizado') {
-						return <Tag color="green">Finalizado</Tag>;
-					}
-				},
-			}, */
-		];
 		this.setState({
 			loading: true,
-			disabledMenu: true,
-			columns: columnas_operaciones,
 		});
+		let columns1 = [
+			{
+				title: 'GRUPO 1',
+				children: [
+					{
+						title: 'ESTATUS',
+						dataIndex: 'estatus_app',
+						key: 'estatus_app',
+						render: (record) => {
+							return this.estatus(record);
+						},
+					},
+					{ title: 'Id', dataIndex: 'id', key: 'id' },
+					{
+						title: 'INFORMACION DE CARGA',
+						children: [
+							{
+								title: 'CLIENTE',
+								dataIndex: 'cliente',
+								key: 'cliente',
+							},
+							{
+								title: 'DIRECCION DE CARGA',
+								dataIndex: 'direccion_carga',
+								key: 'direccion_carga',
+							},
+							{
+								title: 'FECHA DE CARGA',
+								dataIndex: 'fecha_carga',
+								key: 'fecha_carga',
+							},
+							{
+								title: 'TIPO DE ADECUACION',
+								dataIndex: 'tipo_adecuacion',
+								key: 'tipo_adecuacion',
+							},
+							{
+								title: 'TIPO DE UNIDAD',
+								dataIndex: 'tipo_unidad',
+								key: 'tipo_unidad',
+							},
+						],
+					},
 
-		consultaViajes('Proceso').then((response) => {
-			console.log(response);
-			this.setState({
-				data: response.payload,
-			});
+					{
+						title: 'INFORMACION DE EMPRESA DE TRANSPORTE',
+						children: [
+							{
+								title: 'EMPRESA',
+								dataIndex: 'empresa',
+								key: 'empresa',
+							},
+							{
+								title: 'OPERADOR',
+								dataIndex: 'operador',
+								key: 'operador',
+							},
+							{
+								title: 'UNIDAD',
+								dataIndex: 'unidad',
+								key: 'unidad',
+							},
+						],
+					},
+					{
+						title: 'INFORMACION DE ENTREGA',
+						children: [
+							{
+								title: 'ENTREGA',
+								dataIndex: 'entrega',
+								key: 'entrega',
+							},
+							{
+								title: 'DESTINO',
+								dataIndex: 'destino',
+								key: 'destino',
+							},
+							{
+								title: 'FECHA DE ENTREGA',
+								dataIndex: 'fecha_entrega',
+								key: 'fecha_entrega',
+							},
+						],
+					},
+					{
+						title: 'SERVICIO',
+						dataIndex: 'servicio',
+						key: 'servicio',
+					},
+					{
+						title: 'PRECIO',
+						dataIndex: 'precio',
+						key: 'precio',
+					},
+				],
+			},
+		];
+		let columns2 = [
+			{
+				title: 'GRUPO 2',
+				children: [
+					{
+						title: 'ESTATUS',
+						dataIndex: 'estatus_app',
+						key: 'estatus_app',
+						render: (record) => {
+							return this.estatus(record);
+						},
+					},
+					{ title: 'Id', dataIndex: 'id', key: 'id' },
+					{
+						title: 'INFORMACION DE CARGA',
+						children: [
+							{
+								title: 'CLIENTE',
+								dataIndex: 'cliente',
+								key: 'cliente',
+							},
+							{
+								title: 'DIRECCION DE CARGA',
+								dataIndex: 'direccion_carga',
+								key: 'direccion_carga',
+							},
+							{
+								title: 'FECHA DE CARGA',
+								dataIndex: 'fecha_carga',
+								key: 'fecha_carga',
+							},
+							{
+								title: 'TIPO DE ADECUACION',
+								dataIndex: 'tipo_adecuacion',
+								key: 'tipo_adecuacion',
+							},
+							{
+								title: 'TIPO DE UNIDAD',
+								dataIndex: 'tipo_unidad',
+								key: 'tipo_unidad',
+							},
+						],
+					},
 
+					{
+						title: 'INFORMACION DE EMPRESA DE TRANSPORTE',
+						children: [
+							{
+								title: 'EMPRESA',
+								dataIndex: 'empresa',
+								key: 'empresa',
+							},
+							{
+								title: 'OPERADOR',
+								dataIndex: 'operador',
+								key: 'operador',
+							},
+							{
+								title: 'UNIDAD',
+								dataIndex: 'unidad',
+								key: 'unidad',
+							},
+						],
+					},
+					{
+						title: 'INFORMACION DE ENTREGA',
+						children: [
+							{
+								title: 'ENTREGA',
+								dataIndex: 'entrega',
+								key: 'entrega',
+							},
+							{
+								title: 'DESTINO',
+								dataIndex: 'destino',
+								key: 'destino',
+							},
+							{
+								title: 'FECHA DE ENTREGA',
+								dataIndex: 'fecha_entrega',
+								key: 'fecha_entrega',
+							},
+						],
+					},
+					{
+						title: 'SERVICIO',
+						dataIndex: 'servicio',
+						key: 'servicio',
+					},
+					{
+						title: 'PRECIO',
+						dataIndex: 'precio',
+						key: 'precio',
+					},
+				],
+			},
+		];
+		consultaViajes().then((response) => {
+			let viajes = response.payload;
 			this.setState({
+				columns1,
+				columns2,
+				total1: 0,
+				total2: 0,
+				sin_atender1: 0,
+				sin_atender2: 0,
+				sin_operador1: 0,
+				sin_operador2: 0,
+				sin_estatus1: 0,
+				sin_estatus2: 0,
+				data1: viajes.G1.viajes,
+				data2: viajes.G2.viajes,
 				loading: false,
-				current: 'Proceso',
-				disabledMenu: false,
 			});
 		});
 	};
 
-	changeViajesEstatus = (e) => {
-		this.setState({
-			loading: true,
-			disabledMenu: true,
-		});
-
-		consultaViajes(e.key).then((response) => {
-			this.setState({
-				data: response.payload,
+	onSelectChange = (selectedRowKeys) => {
+		const { data } = this.state;
+		let mod = false,
+			id,
+			operador,
+			cliente,
+			title,
+			empresa,
+			titleOperador = '',
+			titleEmpresa = '';
+		const selectItems = selectedRowKeys.filter((item) => {
+			let re = false;
+			data.map((element) => {
+				if (element.key === item) {
+					if (
+						element.estatus_operador === 'Aprobado' &&
+						element.estatus_empresa === 'Confirmado'
+					) {
+						re = true;
+					} else {
+						mod = true;
+						id = item;
+						operador = element.operador;
+						cliente = element.cliente;
+						empresa = element.empresa;
+						if (element.estatus_operador !== 'Aprobado') {
+							titleOperador = ` -El conductor ${operador} `;
+						}
+						if (element.estatus_empresa !== 'Confirmado') {
+							titleEmpresa = ` -La empresa ${empresa} `;
+						}
+						title = `Los estatus de ${titleOperador}${titleEmpresa} no ha aceptado el viaje del cliente ${cliente}. ¿Quieres continuar?`;
+					}
+				}
+				return element;
 			});
-
-			this.setState({
-				loading: false,
-				current: e.key,
-				disabledMenu: false,
-			});
+			return re;
 		});
+		if (mod) {
+			confirm({
+				title,
+				icon: <ExclamationCircleOutlined />,
+				okText: 'Si',
+				cancelText: 'No',
+				onOk: () => {
+					this.handleChange(id, 'Aprobado', 'estatus_operador');
+					this.handleChange(id, 'Confirmado', 'estatus_empresa');
+					/* this.handleChange(id, this.estatus('Aprobado'), 'app'); */
+					this.onSelectChange(selectedRowKeys);
+				},
+				onCancel() {
+					console.log('Cancel');
+				},
+			});
+		}
+		this.setState({ selectedRowKeys: selectItems });
+	};
+	confirmaViaje = () => {
+		const { selectedRowKeys, data } = this.state;
+		let viajeDeleteArray,
+			request = [];
+		selectedRowKeys.map((item) => {
+			data.map((element) => {
+				if (element.key === item) {
+					request.push({
+						idViaje: element.key,
+						precio: element.precio,
+						gastos: [
+							{
+								tipo: 'Diesel',
+								presupuesto: element.diesel ? element.diesel : 0,
+							},
+							{
+								tipo: 'Casetas',
+								presupuesto: element.casetas ? element.casetas : 0,
+							},
+							{
+								tipo: 'Viaticos',
+								presupuesto: element.viaticos ? element.viaticos : 0,
+							},
+							{
+								tipo: 'Comision',
+								presupuesto: element.comision ? element.comision : 0,
+							},
+
+							{
+								tipo: 'Maniobras',
+								presupuesto: element.maniobras ? element.maniobras : 0,
+							},
+							{
+								tipo: 'Custodia',
+								presupuesto: element.custodia ? element.custodia : 0,
+							},
+							{
+								tipo: 'Externo',
+								presupuesto: element.externo ? element.externo : 0,
+							},
+						],
+						diesel: element.diesel ? element.diesel : 0,
+						casetas: element.casetas ? element.casetas : 0,
+						comision: element.comision ? element.comision : 0,
+						viaticos: element.viaticos ? element.viaticos : 0,
+						maniobras: element.maniobras ? element.maniobras : 0,
+						custodia: element.custodia ? element.custodia : 0,
+						externo: element.externo ? element.externo : 0,
+					});
+				}
+				return element;
+			});
+			return item;
+		});
+		console.log(request);
+		/* confirmaViaje(request).then((response) => {
+			if (response.headerResponse.code === 400) {
+				message.error('No puedes mandar campos vacios ' + response.payload.Faltantes);
+			}
+			if (response.headerResponse.code === 200) {
+				message.success('Viaje confirmado exitosamente');
+				viajeDeleteArray = response.payload;
+				viajeDeleteArray.map((viajeD) => {
+					const viajeDelete = viajeD.sqlEstatusUpdate;
+					const { data } = this.state;
+					this.setState({
+						data: data.filter((via) => viajeDelete !== via.key),
+					});
+					return viajeD;
+				});
+			}
+		}); */
 	};
 
 	render() {
-		const { data, columns, loading, current, disabledMenu, placement, visible } = this.state;
+		const {
+			data1,
+			data2,
+			columns1,
+			columns2,
+			loading,
+			selectedRowKeys,
+			total1,
+			total2,
+			sin_atender1,
+			sin_atender2,
+			sin_operador1,
+			sin_operador2,
+			sin_estatus1,
+			sin_estatus2,
+		} = this.state;
+		const hasSelected = selectedRowKeys.length > 0;
 		return (
 			<Fragment>
 				<Content>
 					<Layout style={{ padding: '24px 24px', background: '#fff' }}>
-						<Menu
-							onClick={this.changeViajesEstatus}
-							mode="horizontal"
-							activeKey={current}
-						>
-							<SubMenu
-								icon={<SettingOutlined />}
-								onTitleClick={this.changeViajesEstatus}
-								key="Proceso"
-								title="PROCESO"
-								disabled={disabledMenu}
+						<div style={{ marginBottom: 16 }}>
+							<Button
+								type="primary"
+								onClick={this.confirmaViaje}
+								disabled={!hasSelected}
+								loading={loading}
 							>
-								<Menu.Item key="Gastos">Gastos</Menu.Item>
-								<Menu.Item key="En proceso cliente">'En proceso cliente</Menu.Item>
-								<Menu.Item key="En proceso">En proceso</Menu.Item>
-								<Menu.Item key="En trayecto">En trayecto</Menu.Item>
-							</SubMenu>
-							<Menu.Item
-								key="Entrega"
-								icon={<MailOutlined />}
-								disabled={disabledMenu}
-							>
-								ENTREGA
-							</Menu.Item>
-							<Menu.Item
-								key="Historial"
-								icon={<MailOutlined />}
-								disabled={disabledMenu}
-							>
-								HISTORIAL
-							</Menu.Item>
-							<Menu.Item key="Todos" icon={<MailOutlined />} disabled={disabledMenu}>
-								TODOS
-							</Menu.Item>
-						</Menu>
+								PLANEAR
+							</Button>
+							<span style={{ marginLeft: 8 }}>
+								{hasSelected ? `Seleccionado ${selectedRowKeys.length} viajes` : ''}
+							</span>
+						</div>
 						<Table
+							rowSelection={{
+								type: 'checkbox',
+								selectedRowKeys,
+								onChange: this.onSelectChange,
+							}}
 							className="components-table-demo-nested"
-							columns={columns}
-							rowKey={(record) => record.idViaje}
-							dataSource={data}
+							title={() => 'Header1'}
+							columns={columns1}
+							title={() => (
+								<div>
+									<Tag color="#f50">{sin_estatus1} POR CONFIRMAR</Tag>
+									<Tag color="#2db7f5">{sin_operador1} POR ASIGNAR</Tag>
+									<Tag color="#87d068">{sin_atender1} SIN ATENDER</Tag>
+									<Tag color="#108ee9">{total1} TOTAL</Tag>
+								</div>
+							)}
+							dataSource={data1}
 							loading={loading}
-							size="small"
-							expandedRowRender={this.expandedRowRender}
+							expandedRowRender={this.expandedRowRender1}
 							bordered
 							pagination={{ position: 'top' }}
 						/>
-						<Drawer
-							title="Basic Drawer"
-							placement={placement}
-							closable={false}
-							onClose={this.onClose}
-							visible={visible}
-							key={placement}
-						></Drawer>
+					</Layout>
+
+					<Layout style={{ padding: '24px 24px', background: '#fff' }}>
+						<div style={{ marginBottom: 16 }}>
+							<Button
+								type="primary"
+								onClick={this.confirmaViaje}
+								disabled={!hasSelected}
+								loading={loading}
+							>
+								PLANEAR
+							</Button>
+							<span style={{ marginLeft: 8 }}>
+								{hasSelected ? `Seleccionado ${selectedRowKeys.length} viajes` : ''}
+							</span>
+						</div>
+						<Table
+							rowSelection={{
+								type: 'checkbox',
+								selectedRowKeys,
+								onChange: this.onSelectChange,
+							}}
+							className="components-table-demo-nested"
+							columns={columns2}
+							title={() => (
+								<div>
+									<Tag color="#f50">{sin_estatus2} POR CONFIRMAR</Tag>
+									<Tag color="#2db7f5">{sin_operador2} POR ASIGNAR</Tag>
+									<Tag color="#87d068">{sin_atender2} SIN ATENDER</Tag>
+									<Tag color="#108ee9">{total2} TOTAL</Tag>
+								</div>
+							)}
+							dataSource={data2}
+							loading={loading}
+							expandedRowRender={this.expandedRowRender2}
+							bordered
+							pagination={{ position: 'top' }}
+						/>
 					</Layout>
 				</Content>
 			</Fragment>
