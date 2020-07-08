@@ -10,6 +10,7 @@ import {
 	Modal,
 	Tag,
 	Typography,
+	Menu,
 } from 'antd';
 import { consultaViajes } from './SolicitudesActions';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
@@ -106,6 +107,12 @@ class Solicitudes extends Component {
 		this.setState({
 			loading: true,
 		});
+		const menu = (
+			<Menu>
+				<Menu.Item>{this.estatus('Rechazado')}</Menu.Item>
+				<Menu.Item>{this.estatus('Confirmado')}</Menu.Item>
+			</Menu>
+		);
 		let columns1 = [
 			{
 				title: 'GRUPO 1',
@@ -115,7 +122,11 @@ class Solicitudes extends Component {
 						dataIndex: 'estatus_app',
 						key: 'estatus_app',
 						render: (record) => {
-							return this.estatus(record);
+							return (
+								<Dropdown overlay={menu} placement="bottomCenter">
+									{this.estatus(record)}
+								</Dropdown>
+							);
 						},
 					},
 					{ title: 'Id', dataIndex: 'id', key: 'id' },
@@ -212,7 +223,11 @@ class Solicitudes extends Component {
 						dataIndex: 'estatus_app',
 						key: 'estatus_app',
 						render: (record) => {
-							return this.estatus(record);
+							return (
+								<Dropdown overlay={menu} placement="bottomCenter">
+									{this.estatus(record)}
+								</Dropdown>
+							);
 						},
 					},
 					{ title: 'Id', dataIndex: 'id', key: 'id' },
@@ -305,14 +320,14 @@ class Solicitudes extends Component {
 			this.setState({
 				columns1,
 				columns2,
-				total1: 0,
-				total2: 0,
-				sin_atender1: 0,
-				sin_atender2: 0,
-				sin_operador1: 0,
-				sin_operador2: 0,
-				sin_estatus1: 0,
-				sin_estatus2: 0,
+				total1: viajes.G1.total,
+				total2: viajes.G2.total,
+				sin_atender1: viajes.G1.sin_atender,
+				sin_atender2: viajes.G2.sin_operador,
+				sin_operador1: viajes.G1.sin_operador,
+				sin_operador2: viajes.G2.sin_operador,
+				sin_estatus1: viajes.G1.sin_estatus,
+				sin_estatus2: viajes.G2.sin_estatus,
 				data1: viajes.G1.viajes,
 				data2: viajes.G2.viajes,
 				loading: false,
