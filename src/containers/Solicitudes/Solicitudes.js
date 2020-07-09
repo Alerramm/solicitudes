@@ -12,7 +12,7 @@ import {
 	Typography,
 	Menu,
 } from 'antd';
-import { consultaViajes } from './SolicitudesActions';
+import { consultaViajes, solicitaViaje } from './SolicitudesActions';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 const { Content } = Layout;
 const { confirm } = Modal;
@@ -24,7 +24,8 @@ class Solicitudes extends Component {
 		data2: [],
 		columns1: [],
 		columns2: [],
-		loading: false,
+		loading1: false,
+		loading2: false,
 		id: 0,
 		parcial: false,
 		monto: 0,
@@ -45,16 +46,29 @@ class Solicitudes extends Component {
 	};
 
 	//ok
-	handleChange = (id, value, columna) => {
-		const { data } = this.state;
-		data.map((viaje) => {
+	handleChange1 = (id, value, columna) => {
+		const { data1 } = this.state;
+		data1.map((viaje) => {
 			if (id === viaje.key) {
 				viaje[columna] = value;
 			}
 			return viaje;
 		});
 		this.setState({
-			data,
+			data1,
+		});
+	};
+
+	handleChange2 = (id, value, columna) => {
+		const { data2 } = this.state;
+		data2.map((viaje) => {
+			if (id === viaje.key) {
+				viaje[columna] = value;
+			}
+			return viaje;
+		});
+		this.setState({
+			data2,
 		});
 	};
 
@@ -105,7 +119,8 @@ class Solicitudes extends Component {
 	//ok
 	componentDidMount = () => {
 		this.setState({
-			loading: true,
+			loading1: true,
+			loading2: true,
 		});
 		const menu = (
 			<Menu>
@@ -121,7 +136,7 @@ class Solicitudes extends Component {
 						title: 'ESTATUS',
 						dataIndex: 'estatus_app',
 						key: 'estatus_app',
-						render: (record) => {
+						render: (record, label) => {
 							return (
 								<Dropdown overlay={menu} placement="bottomCenter">
 									{this.estatus(record)}
@@ -330,43 +345,30 @@ class Solicitudes extends Component {
 				sin_estatus2: viajes.G2.sin_estatus,
 				data1: viajes.G1.viajes,
 				data2: viajes.G2.viajes,
-				loading: false,
+				loading1: false,
+				loading2: false,
 			});
 		});
 	};
 
-	onSelectChange = (selectedRowKeys) => {
-		const { data } = this.state;
+	onSelectChange1 = (selectedRowKeys) => {
+		console.log(selectedRowKeys);
+		const { data1 } = this.state;
 		let mod = false,
 			id,
-			operador,
-			cliente,
-			title,
-			empresa,
-			titleOperador = '',
-			titleEmpresa = '';
+			title;
 		const selectItems = selectedRowKeys.filter((item) => {
 			let re = false;
-			data.map((element) => {
-				if (element.key === item) {
-					if (
-						element.estatus_operador === 'Aprobado' &&
-						element.estatus_empresa === 'Confirmado'
-					) {
+			data1.map((element) => {
+				console.log(element.key);
+				console.log(item);
+				if (element.key == item) {
+					if (element.estatus_app === 'Confirmado') {
 						re = true;
 					} else {
 						mod = true;
 						id = item;
-						operador = element.operador;
-						cliente = element.cliente;
-						empresa = element.empresa;
-						if (element.estatus_operador !== 'Aprobado') {
-							titleOperador = ` -El conductor ${operador} `;
-						}
-						if (element.estatus_empresa !== 'Confirmado') {
-							titleEmpresa = ` -La empresa ${empresa} `;
-						}
-						title = `Los estatus de ${titleOperador}${titleEmpresa} no ha aceptado el viaje del cliente ${cliente}. ¿Quieres continuar?`;
+						title = `El viaje con id ${id} no ha sido confirmado. ¿Quieres continuar?`;
 					}
 				}
 				return element;
@@ -380,10 +382,8 @@ class Solicitudes extends Component {
 				okText: 'Si',
 				cancelText: 'No',
 				onOk: () => {
-					this.handleChange(id, 'Aprobado', 'estatus_operador');
-					this.handleChange(id, 'Confirmado', 'estatus_empresa');
-					/* this.handleChange(id, this.estatus('Aprobado'), 'app'); */
-					this.onSelectChange(selectedRowKeys);
+					this.handleChange1(id, 'Confirmado', 'estatus_app');
+					this.onSelectChange1(selectedRowKeys);
 				},
 				onCancel() {
 					console.log('Cancel');
@@ -392,54 +392,60 @@ class Solicitudes extends Component {
 		}
 		this.setState({ selectedRowKeys: selectItems });
 	};
+
+	onSelectChange2 = (selectedRowKeys) => {
+		const { data2 } = this.state;
+		let mod = false,
+			id,
+			title,
+			idViaje;
+		const selectItems2 = selectedRowKeys.filter((item) => {
+			let re = false;
+			data2.map((element) => {
+				if (element.key == item) {
+					if (element.estatus_app === 'Confirmado') {
+						re = true;
+					} else {
+						mod = true;
+						idViaje = element.id;
+						title = `El viaje con id ${idViaje} no ha sido confirmado. ¿Quieres continuar?`;
+					}
+				}
+				return element;
+			});
+			return re;
+		});
+		if (mod) {
+			confirm({
+				title,
+				icon: <ExclamationCircleOutlined />,
+				okText: 'Si',
+				cancelText: 'No',
+				onOk: () => {
+					/* 
+					this.handleChange(id, 'Aprobado', 'estatus_operador'); */
+					this.handleChange2(idViaje, 'Confirmado', 'estatus_app');
+					/* this.handleChange(id, this.estatus('Aprobado'), 'app'); */
+					this.onSelectChange2(selectedRowKeys);
+				},
+				onCancel() {
+					console.log('Cancel');
+				},
+			});
+		}
+		this.setState({ selectedRowKeys: selectItems2 });
+	};
 	confirmaViaje = () => {
-		const { selectedRowKeys, data } = this.state;
+		const { selectedRowKeys, data1 } = this.state;
 		let viajeDeleteArray,
 			request = [];
 		selectedRowKeys.map((item) => {
-			data.map((element) => {
+			data1.map((element) => {
 				if (element.key === item) {
 					request.push({
 						idViaje: element.key,
-						precio: element.precio,
-						gastos: [
-							{
-								tipo: 'Diesel',
-								presupuesto: element.diesel ? element.diesel : 0,
-							},
-							{
-								tipo: 'Casetas',
-								presupuesto: element.casetas ? element.casetas : 0,
-							},
-							{
-								tipo: 'Viaticos',
-								presupuesto: element.viaticos ? element.viaticos : 0,
-							},
-							{
-								tipo: 'Comision',
-								presupuesto: element.comision ? element.comision : 0,
-							},
-
-							{
-								tipo: 'Maniobras',
-								presupuesto: element.maniobras ? element.maniobras : 0,
-							},
-							{
-								tipo: 'Custodia',
-								presupuesto: element.custodia ? element.custodia : 0,
-							},
-							{
-								tipo: 'Externo',
-								presupuesto: element.externo ? element.externo : 0,
-							},
-						],
-						diesel: element.diesel ? element.diesel : 0,
-						casetas: element.casetas ? element.casetas : 0,
-						comision: element.comision ? element.comision : 0,
-						viaticos: element.viaticos ? element.viaticos : 0,
-						maniobras: element.maniobras ? element.maniobras : 0,
-						custodia: element.custodia ? element.custodia : 0,
-						externo: element.externo ? element.externo : 0,
+						estatus_app: 'Pendiente',
+						estatus: 'Pendiente',
 					});
 				}
 				return element;
@@ -447,7 +453,7 @@ class Solicitudes extends Component {
 			return item;
 		});
 		console.log(request);
-		/* confirmaViaje(request).then((response) => {
+		solicitaViaje(request).then((response) => {
 			if (response.headerResponse.code === 400) {
 				message.error('No puedes mandar campos vacios ' + response.payload.Faltantes);
 			}
@@ -456,24 +462,60 @@ class Solicitudes extends Component {
 				viajeDeleteArray = response.payload;
 				viajeDeleteArray.map((viajeD) => {
 					const viajeDelete = viajeD.sqlEstatusUpdate;
-					const { data } = this.state;
+					const { data1 } = this.state;
 					this.setState({
-						data: data.filter((via) => viajeDelete !== via.key),
+						data1: data1.filter((via) => viajeDelete !== via.key),
 					});
 					return viajeD;
 				});
 			}
-		}); */
+		});
 	};
-
+	confirmaViaje2 = () => {
+		const { selectedRowKeys, data2 } = this.state;
+		let viajeDeleteArray,
+			request = [];
+		selectedRowKeys.map((item) => {
+			data2.map((element) => {
+				if (element.key === item) {
+					request.push({
+						idViaje: element.key,
+						estatus_app: 'Pendiente',
+						estatus: 'Pendiente',
+					});
+				}
+				return element;
+			});
+			return item;
+		});
+		console.log(request);
+		solicitaViaje(request).then((response) => {
+			if (response.headerResponse.code === 400) {
+				message.error('No puedes mandar campos vacios ' + response.payload.Faltantes);
+			}
+			if (response.headerResponse.code === 200) {
+				message.success('Viaje confirmado exitosamente');
+				viajeDeleteArray = response.payload;
+				viajeDeleteArray.map((viajeD) => {
+					const viajeDelete = viajeD.sqlEstatusUpdate;
+					const { data2 } = this.state;
+					this.setState({
+						data2: data2.filter((via) => viajeDelete !== via.key),
+					});
+					return viajeD;
+				});
+			}
+		});
+	};
 	render() {
 		const {
 			data1,
 			data2,
 			columns1,
 			columns2,
-			loading,
+			loading1,
 			selectedRowKeys,
+			loading2,
 			total1,
 			total2,
 			sin_atender1,
@@ -483,7 +525,9 @@ class Solicitudes extends Component {
 			sin_estatus1,
 			sin_estatus2,
 		} = this.state;
-		const hasSelected = selectedRowKeys.length > 0;
+		const hasSelected1 = selectedRowKeys.length > 0;
+		const hasSelected2 = selectedRowKeys.length > 0;
+		console.log(selectedRowKeys);
 		return (
 			<Fragment>
 				<Content>
@@ -492,23 +536,24 @@ class Solicitudes extends Component {
 							<Button
 								type="primary"
 								onClick={this.confirmaViaje}
-								disabled={!hasSelected}
-								loading={loading}
+								disabled={!hasSelected1}
+								loading={loading1}
 							>
 								PLANEAR
 							</Button>
 							<span style={{ marginLeft: 8 }}>
-								{hasSelected ? `Seleccionado ${selectedRowKeys.length} viajes` : ''}
+								{hasSelected1
+									? `Seleccionado ${selectedRowKeys.length} viajes`
+									: ''}
 							</span>
 						</div>
 						<Table
 							rowSelection={{
 								type: 'checkbox',
 								selectedRowKeys,
-								onChange: this.onSelectChange,
+								onChange: this.onSelectChange1,
 							}}
 							className="components-table-demo-nested"
-							title={() => 'Header1'}
 							columns={columns1}
 							title={() => (
 								<div>
@@ -519,7 +564,7 @@ class Solicitudes extends Component {
 								</div>
 							)}
 							dataSource={data1}
-							loading={loading}
+							loading={loading1}
 							expandedRowRender={this.expandedRowRender1}
 							bordered
 							pagination={{ position: 'top' }}
@@ -530,21 +575,23 @@ class Solicitudes extends Component {
 						<div style={{ marginBottom: 16 }}>
 							<Button
 								type="primary"
-								onClick={this.confirmaViaje}
-								disabled={!hasSelected}
-								loading={loading}
+								onClick={this.confirmaViaje2}
+								disabled={!hasSelected2}
+								loading={loading2}
 							>
 								PLANEAR
 							</Button>
 							<span style={{ marginLeft: 8 }}>
-								{hasSelected ? `Seleccionado ${selectedRowKeys.length} viajes` : ''}
+								{hasSelected2
+									? `Seleccionado ${selectedRowKeys.length} viajes`
+									: ''}
 							</span>
 						</div>
 						<Table
 							rowSelection={{
 								type: 'checkbox',
 								selectedRowKeys,
-								onChange: this.onSelectChange,
+								onChange: this.onSelectChange2,
 							}}
 							className="components-table-demo-nested"
 							columns={columns2}
@@ -557,7 +604,7 @@ class Solicitudes extends Component {
 								</div>
 							)}
 							dataSource={data2}
-							loading={loading}
+							loading={loading2}
 							expandedRowRender={this.expandedRowRender2}
 							bordered
 							pagination={{ position: 'top' }}

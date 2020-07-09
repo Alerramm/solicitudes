@@ -1,5 +1,5 @@
 import { solicitudesApiGet } from './SolicitudesApi';
-import { CONSULTAR_VIAJES } from '../../constants/Endpoints';
+import { CONSULTAR_VIAJES, SOLICITA_VIAJES } from '../../constants/Endpoints';
 
 export const consultaViajes = async (estatus) => {
 	const queryView = {
@@ -8,6 +8,15 @@ export const consultaViajes = async (estatus) => {
 		data: {
 			estatus: estatus,
 		},
+	};
+	return solicitudesApiGet(queryView);
+};
+
+export const solicitaViaje = async (data) => {
+	const queryView = {
+		endpoint: SOLICITA_VIAJES,
+		method: 'POST',
+		data,
 	};
 	return solicitudesApiGet(queryView);
 };
