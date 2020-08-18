@@ -1,7 +1,7 @@
 {
 	"apps": [
 		{
-			"name": "solicitudes",
+			"name": "solicitudesQA",
 			"cwd": "./src/",
 			"script": "npm",
 			"args": "run start"
