@@ -445,7 +445,7 @@ class Solicitudes extends Component {
 					request.push({
 						idViaje: element.key,
 						estatus_app: 'Pendiente',
-						estatus: 'Pendiente',
+						estatus: 'Asignacion',
 					});
 				}
 				return element;
@@ -481,7 +481,7 @@ class Solicitudes extends Component {
 					request.push({
 						idViaje: element.key,
 						estatus_app: 'Pendiente',
-						estatus: 'Pendiente',
+						estatus: 'Asignacion',
 					});
 				}
 				return element;
